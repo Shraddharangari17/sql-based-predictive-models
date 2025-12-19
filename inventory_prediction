@@ -1,0 +1,41 @@
+# src/train_inventory_model.py
+
+import os
+import joblib
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error
+from .preprocess_inventory import preprocess_inventory_data
+from .config import INVENTORY_MODEL_PATH
+
+def train_inventory_model():
+    os.makedirs(os.path.dirname(INVENTORY_MODEL_PATH), exist_ok=True)
+
+    X_train, X_test, y_train, y_test = preprocess_inventory_data()
+
+    print("🚀 Training Inventory Model...")
+    model = RandomForestRegressor(
+        n_estimators=300,
+        max_depth=None,
+        random_state=42,
+        n_jobs=-1,
+    )
+    model.fit(X_train, y_train)
+
+    # Training performance
+    y_train_pred = model.predict(X_train)
+    train_r2 = r2_score(y_train, y_train_pred)
+
+    # Validation performance
+    y_test_pred = model.predict(X_test)
+    test_r2 = r2_score(y_test, y_test_pred)
+    mse = mean_squared_error(y_test, y_test_pred)
+
+    print(f"📈 Training R² Score   : {train_r2:.2f}")
+    print(f"⭐ Validation R² Score : {test_r2:.2f}")
+    print(f"📉 Validation MSE      : {mse:.2f}")
+
+    joblib.dump(model, INVENTORY_MODEL_PATH)
+    print(f"✔ Inventory model saved at: {INVENTORY_MODEL_PATH}")
+
+if __name__ == "__main__":
+    train_inventory_model()
